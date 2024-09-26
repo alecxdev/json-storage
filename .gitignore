@@ -1,0 +1,10 @@
+.env
+node_modules
+
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### VisualStudioCode ###
+.vscode/*

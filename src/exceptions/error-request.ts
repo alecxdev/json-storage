@@ -29,3 +29,15 @@ export class ServerError extends ApiError {
         super(ResponseStatus.INTERNAL_ERROR, message);
     }
 }
+
+export class UnauthorizedError extends ApiError {
+    constructor(message: string = 'Unauthorized') {
+        super(403, message);
+    }
+}
+
+export class NotFoundError extends ApiError {
+    constructor(message: string = 'Not Found') {
+        super(404, message);
+    }
+}

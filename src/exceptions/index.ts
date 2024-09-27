@@ -1,5 +1,7 @@
 export {
   ApiError,
   BadRequestError,
-  ServerError
+  NotFoundError,
+  ServerError,
+  UnauthorizedError,
 } from './error-request';

@@ -1,16 +1,22 @@
 {
-  "users": [
-    {
-      "name": "Ale",
-      "job": "Engineer",
-      "birth": "31-12-2024"
-    }
-  ],
-  "obj": {
-    "rect": {
-      "x": 1,
-      "y": 2
-    }
+  "1": {
+    "users": [
+      {
+        "name": "Ale",
+        "job": "Engineer",
+        "birth": "31-12-2024"
+      }
+    ],
+    "obj": {
+      "rect": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    "success": true
   },
-  "success": true
+  "2": [{
+    "id": 1,
+    "name": "Ale"
+  }]
 }

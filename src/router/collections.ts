@@ -1,12 +1,17 @@
 import { Router, Request, Response } from 'express';
-import json from '../db/data.json';
-import { BadRequestError } from '../exceptions';
-import { createCollection } from '../services/collection';
+import { BadRequestError, ServerError } from '../exceptions';
+import { Collections } from '../services';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-  res.json({ data: Object.keys(json) });
+router.get('/', async (req, res) => {
+  const collections = await Collections.getCollections()
+
+  if (!collections) {
+    throw new ServerError();
+  }
+
+  res.json({ data: collections });
 });
 
 router.post('/', async (req, res) => {
@@ -25,23 +30,23 @@ router.post('/', async (req, res) => {
     throw err;
   }
 
-  const id = await createCollection(body)
+  const id = await Collections.createCollection(body)
 
   res.json(id);
 });
 
-router.use('/:id', (req: Request, res: Response) => {
+router.use('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const properties = req.path.split('/').filter((q) => q.length);
 
-  let data: Record<string, any> = json;
+  let data: any | undefined = await Collections.getCollectionById(id);
 
-  if (!id || !(json as any)[id]) {
+  if (!id || !data) {
     throw new BadRequestError();
   }
 
   if (!properties.length) {
-    res.json({response: data})
+    res.json({ response: data, success: true })
   } else {
     let property: string
     for (property of properties) {

@@ -1,10 +1,33 @@
 import { Router, Request, Response } from 'express';
 import json from '../db/data.json';
 import { BadRequestError } from '../exceptions';
+import { createCollection } from '../services/collection';
 
 const router = Router();
+
 router.get('/', (req, res) => {
   res.json({ data: Object.keys(json) });
+});
+
+router.post('/', async (req, res) => {
+  if (!req.body) {
+    throw new BadRequestError();
+  }
+
+  let body;
+  try {
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+    if (!Array.isArray(body) && !Object.keys(body).length) {
+      throw new BadRequestError();
+    }
+  } catch (err) {
+    throw err;
+  }
+
+  const id = await createCollection(body)
+
+  res.json(id);
 });
 
 router.use('/:id', (req: Request, res: Response) => {

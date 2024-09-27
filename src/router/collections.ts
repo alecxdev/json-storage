@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { BadRequestError, ServerError } from '../exceptions';
 import { Collections } from '../services';
+import fn from '../utils/async-handler';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', fn(async (req, res) => {
   const collections = await Collections.getCollections()
 
   if (!collections) {
@@ -12,9 +13,9 @@ router.get('/', async (req, res) => {
   }
 
   res.json({ data: collections });
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', fn(async (req, res) => {
   if (!req.body) {
     throw new BadRequestError();
   }
@@ -33,9 +34,20 @@ router.post('/', async (req, res) => {
   const id = await Collections.createCollection(body)
 
   res.json(id);
-});
+}));
 
-router.use('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', fn(async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await Collections.deleteCollection(id)
+    res.json({ success: true });
+  } catch (error) {
+    throw error;
+  }
+}));
+
+router.use('/:id', fn(async (req: Request, res: Response, next) => {
   const { id } = req.params;
   const properties = req.path.split('/').filter((q) => q.length);
 
@@ -64,6 +76,6 @@ router.use('/:id', async (req: Request, res: Response) => {
       success: true
     });
   }
-});
+}));
 
 export default router;

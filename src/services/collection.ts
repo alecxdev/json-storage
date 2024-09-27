@@ -1,4 +1,5 @@
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, rm, readFile, writeFile } from 'node:fs/promises';
+import { NotFoundError } from '../exceptions';
 
 const STORAGE_URL = './src/db';
 
@@ -30,5 +31,13 @@ export const createCollection = async (body: any) => {
         return uuid;
     } catch {
         return undefined;
+    }
+}
+
+export const deleteCollection = async (id: string) => {
+    try {
+        await rm(`${STORAGE_URL}/${id}.json`, );
+    } catch {
+        throw new NotFoundError()
     }
 }

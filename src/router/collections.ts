@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { BadRequestError, ServerError } from '../exceptions';
+import { BadRequestError, NotFoundError, ServerError } from '../exceptions';
 import { Collections } from '../services';
 import fn from '../utils/async-handler';
 
@@ -47,7 +47,27 @@ router.delete('/:id', fn(async (req, res) => {
   }
 }));
 
-router.use('/:id', fn(async (req: Request, res: Response, next) => {
+router.put('/:id', fn(async (req, res) => {
+  const { params: { id }, body } = req;
+
+  if (typeof body !== 'object') {
+    throw new Error();
+  }
+
+  try {
+    const response = await Collections.updateCollection(id, body);
+    
+    res.json({ success: true, response });
+  } catch (error) {
+    throw error;
+  }
+}));
+
+router.use('/:id', fn(async (req: Request, res: Response) => {
+  if (!['GET'].includes(req.method.toUpperCase())) {
+    throw new NotFoundError();
+  }
+
   const { id } = req.params;
   const properties = req.path.split('/').filter((q) => q.length);
 

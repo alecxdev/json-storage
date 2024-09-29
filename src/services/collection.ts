@@ -1,5 +1,5 @@
 import { readdir, rm, readFile, writeFile } from 'node:fs/promises';
-import { NotFoundError } from '../exceptions';
+import { NotFoundError, ServerError } from '../exceptions';
 
 const STORAGE_URL = './src/db';
 
@@ -39,5 +39,15 @@ export const deleteCollection = async (id: string) => {
         await rm(`${STORAGE_URL}/${id}.json`, );
     } catch {
         throw new NotFoundError()
+    }
+}
+
+export const updateCollection = async (id: string, body: any) => {
+    try {
+        await writeFile(`${STORAGE_URL}/${id}.json`, JSON.stringify(body));
+
+        return body;
+    } catch {
+        throw new ServerError();
     }
 }

@@ -1,14 +1,18 @@
 import express, { NextFunction, Request, Response } from 'express';
 import router from './router';
 import { PORT } from './config';
-import { ServerError } from './exceptions';
+import { NotFoundError } from './exceptions';
 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 app.use(router);
 
 app.use('/', () => {
-  throw new ServerError();
+  throw new NotFoundError();
 });
 
 app.use((err: Error | undefined, req: Request, res: Response, next: NextFunction) => {

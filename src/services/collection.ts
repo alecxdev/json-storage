@@ -1,5 +1,5 @@
 import { readdir, rm, readFile, writeFile } from 'node:fs/promises';
-import { NotFoundError, ServerError } from '../exceptions';
+import { BadRequestError, NotFoundError, ServerError } from '../exceptions';
 
 const STORAGE_URL = './src/db';
 
@@ -13,13 +13,26 @@ export const getCollections = async () => {
     }
 }
 
-export const getCollectionById = async (id: string) => {
+export const getCollectionById = async (id: string, path: string[]) => {
     try {
         const content = await readFile(`${STORAGE_URL}/${id}.json`, { encoding: 'utf-8' });
+        let data = JSON.parse(content);
 
-        return JSON.parse(content);
+        if (!path.length) {
+            return data;
+        }
+
+        for (const property of path) {
+            if (!(property in data) || data[property] == null || typeof data[property] !== 'object') {
+                throw new BadRequestError()
+            }
+
+            data = data[property];
+        }
+
+        return data
     } catch {
-        return undefined;
+        throw new ServerError();
     }
 }
 

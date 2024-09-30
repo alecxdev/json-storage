@@ -71,30 +71,12 @@ router.use('/:id', fn(async (req: Request, res: Response) => {
   const { id } = req.params;
   const properties = req.path.split('/').filter((q) => q.length);
 
-  let data: any | undefined = await Collections.getCollectionById(id);
+  try {
+    let data: any = await Collections.getCollectionById(id, properties);
 
-  if (!id || !data) {
-    throw new BadRequestError();
-  }
-
-  if (!properties.length) {
-    res.json({ response: data, success: true })
-  } else {
-    let property: string
-    for (property of properties) {
-
-      // TODO - check array
-      if (!(property in data)) {
-        throw new BadRequestError()
-      }
-
-      data = data[property];
-    }
-
-    res.json({
-      response: { [property!]: data },
-      success: true
-    });
+    res.json({ response: data, success: true });
+  } catch {
+    throw new ServerError();
   }
 }));
 

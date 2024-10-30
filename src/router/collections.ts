@@ -106,14 +106,9 @@ router.use('/:id', fn(async (req, res, next) => {
 
 router.get('/:id*', (req: Request, res: Response) => {
   // Your route handler logic here
-  const { id, collection, properties }  = (req as unknown as CollectionRequest);
+  const { collection }  = (req as unknown as CollectionRequest);
 
-  console.log('id *', id, collection, properties);
-
-  console.log('id:', req.params.id);
-
-  return new SuccessResponse().send(res, 'hola mundo');
-})
-
+  return new SuccessResponse().send(res, collection);
+});
 
 export default router;

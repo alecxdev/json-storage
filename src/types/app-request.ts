@@ -1,5 +1,7 @@
+import { Collection } from './collection';
+
 export declare interface CollectionRequest extends Request {
-    collection: any;
+    collection: Collection;
     id: string;
     properties: string[];
 }

@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response } from 'express';
 
 abstract class ApiResponse {
     status: number;
@@ -7,7 +7,7 @@ abstract class ApiResponse {
         this.status = status;
     }
 
-    public send( res: Response, data: any) {
+    public send(res: Response, data: any) {
         res.status(this.status).json(data);
     }
 }

@@ -1,5 +1,9 @@
 import { Response } from 'express';
 
+enum SuccessResponseStatus {
+    OK = 200
+}
+
 abstract class ApiResponse {
     status: number;
 
@@ -7,14 +11,14 @@ abstract class ApiResponse {
         this.status = status;
     }
 
-    public send(res: Response, data: any) {
+    public send(res: Response, data: unknown) {
         res.status(this.status).json(data);
     }
 }
 
 export class SuccessResponse extends ApiResponse {
     constructor() {
-        super(200);
+        super(SuccessResponseStatus.OK);
     }
 
     public send(res: Response, data: any) {

@@ -3,7 +3,7 @@ import { SuccessResponse } from '../core/response';
 import { BadRequestError, ServerError } from '../exceptions';
 import { CollectionRequest } from '../types/app-request';
 import { Collection } from '../types/collection';
-import { LocalCollectionRepository } from '../repositories/local-collection.repository';
+import { LocalCollectionRepository } from '../repositories/local-collection-repository';
 import fn from '../utils/async-handler';
 
 const router = Router();

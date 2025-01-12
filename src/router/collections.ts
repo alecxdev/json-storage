@@ -1,14 +1,17 @@
 import { Router, Request, Response } from 'express';
-import { BadRequestError, NotFoundError, ServerError } from '../exceptions';
-import { Collections } from '../services';
-import fn from '../utils/async-handler';
-import { CollectionRequest } from '../types/app-request';
 import { SuccessResponse } from '../core/response';
+import { BadRequestError, ServerError } from '../exceptions';
+import { CollectionRequest } from '../types/app-request';
+import { Collection } from '../types/collection';
+import { LocalCollectionRepository } from '../repositories/local-collection.repository';
+import fn from '../utils/async-handler';
 
 const router = Router();
 
+const collectionRepo: Collection.Repository = new LocalCollectionRepository();
+
 router.get('/', fn(async (req, res) => {
-  const collections = await Collections.getCollections()
+  const collections = await collectionRepo.getAll()
 
   if (!collections) {
     throw new ServerError();
@@ -33,7 +36,7 @@ router.post('/', fn(async (req, res) => {
     throw err;
   }
 
-  const id = await Collections.createCollection(body)
+  const id = await collectionRepo.create(body)
 
   res.json(id);
 }));
@@ -42,7 +45,8 @@ router.delete('/:id', fn(async (req, res) => {
   const { id } = req.params;
 
   try {
-    await Collections.deleteCollection(id)
+    await collectionRepo.delete(id);
+
     res.json({ success: true });
   } catch (error) {
     throw error;
@@ -57,7 +61,7 @@ router.put('/:id', fn(async (req, res) => {
   }
 
   try {
-    const response = await Collections.updateCollection(id, body);
+    const response = await collectionRepo.update({ ...body, id });
     
     res.json({ success: true, response });
   } catch (error) {
@@ -80,7 +84,7 @@ router.use('/:id', fn(async (req, res, next) => {
   const properties = req.path.split('/').filter((q) => q.length);
 
   try {
-    let data: any = await Collections.getCollectionById(id, properties);
+    let data: any = await collectionRepo.getById(id, properties);
     const entries = [
       ['id', id],
       ['collection', data],

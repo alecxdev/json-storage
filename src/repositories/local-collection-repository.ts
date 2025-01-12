@@ -1,9 +1,9 @@
 import { readdir, rm, readFile, writeFile } from 'node:fs/promises';
 import { Collection } from '../types/collection';
-import { Repository } from '../types/repository';
 import { BadRequestError, NotFoundError, ServerError } from '../exceptions';
+import { join } from 'node:path';
 
-const STORAGE_URL = './src/db';
+const STORAGE_URL = join(__dirname, '../db');
 
 export class LocalCollectionRepository implements Collection.Repository {
     async getAll(): Promise<Collection[] | undefined> {
@@ -11,7 +11,11 @@ export class LocalCollectionRepository implements Collection.Repository {
             const dir = await readdir(STORAGE_URL);
     
             return dir.filter(file => file.endsWith('.json'))
-            .map<Collection>(file => ({ id: file.replace(/.json$/, ''), data: file }));
+            .map<Collection>(file => {
+                const name = file.replace(/.json$/, '');
+
+                return { id: name, data: undefined };
+            });
         } catch {
             return undefined;
         }
@@ -71,17 +75,4 @@ export class LocalCollectionRepository implements Collection.Repository {
         }
     }
 
-}
-
-const localRepo = new LocalCollectionRepository();
-localRepo.create({ data: '' })
-
-localRepo.getById('').then(v => v.id)
-
-interface A {
-    name: string;
-}
-
-interface B extends A {
-    id: string;
 }

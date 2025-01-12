@@ -1,6 +1,7 @@
 import { Response } from 'express';
+import { ErrorResponse } from '../core/response';
 
-enum ResponseStatus {
+enum ErrorResponseStatus {
     BAD_REQUEST = 400,
     UNAUTHORIZED = 401,
     NOT_FOUND = 400,
@@ -8,7 +9,7 @@ enum ResponseStatus {
 }
 
 export class ApiError extends Error {
-    status: ResponseStatus;
+    status: ErrorResponseStatus;
   
     constructor(status: number, message: string) {
       super(message);
@@ -16,30 +17,31 @@ export class ApiError extends Error {
     }
 
     static request(err: ApiError, res: Response) {
-        return res.status(err.status).json({ error: err.message });
+        return new ErrorResponse(err.status).send(res, err);
+        // return res.status(err.status).json({ success: false, error: err.message });
     }
 }
 
 export class BadRequestError extends ApiError {
     constructor(message: string = 'Bad Request') {
-        super(ResponseStatus.BAD_REQUEST, message);
+        super(ErrorResponseStatus.BAD_REQUEST, message);
     }
 }
 
 export class ServerError extends ApiError {
     constructor(message: string = 'Internal Error') {
-        super(ResponseStatus.INTERNAL_ERROR, message);
+        super(ErrorResponseStatus.INTERNAL_ERROR, message);
     }
 }
 
 export class UnauthorizedError extends ApiError {
     constructor(message: string = 'Unauthorized') {
-        super(ResponseStatus.UNAUTHORIZED, message);
+        super(ErrorResponseStatus.UNAUTHORIZED, message);
     }
 }
 
 export class NotFoundError extends ApiError {
     constructor(message: string = 'Not Found') {
-        super(ResponseStatus.NOT_FOUND, message);
+        super(ErrorResponseStatus.NOT_FOUND, message);
     }
 }

@@ -1,8 +1,8 @@
-import { Repository as RepositoryType } from "./repository";
+import { Repository as RepositoryType } from './repository';
 
 export interface Collection {
     id: string;
-    data: unknown
+    payload: unknown
 }
 
 export namespace Collection {

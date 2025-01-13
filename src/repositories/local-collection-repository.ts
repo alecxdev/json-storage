@@ -14,7 +14,7 @@ export class LocalCollectionRepository implements Collection.Repository {
             .map<Collection>(file => {
                 const name = file.replace(/.json$/, '');
 
-                return { id: name, data: undefined };
+                return { id: name, payload: undefined };
             });
         } catch {
             return undefined;
@@ -24,15 +24,15 @@ export class LocalCollectionRepository implements Collection.Repository {
     async getById(id: string, path?: string[]): Promise<Collection> {
         try {
             const content = await readFile(`${STORAGE_URL}/${id}.json`, { encoding: 'utf-8' });
-            let data: Collection['data'] = JSON.parse(content);
+            let payload: Collection['payload'] = JSON.parse(content);
     
             if (!path?.length) {
-                return { id, data };
+                return { id, payload };
             }
     
             for (const property of path) {
-                if (data && typeof data === 'object' && property in data) {
-                    data = data[property as keyof typeof data];
+                if (payload && typeof payload === 'object' && property in payload) {
+                    payload = payload[property as keyof typeof payload];
 
                     continue;
                 }
@@ -40,7 +40,7 @@ export class LocalCollectionRepository implements Collection.Repository {
                 throw new BadRequestError()
             }
 
-            return { id, data };
+            return { id, payload };
         } catch {
             throw new ServerError();
         }
@@ -49,9 +49,9 @@ export class LocalCollectionRepository implements Collection.Repository {
     async create(collection: Omit<Collection, 'id'>): Promise<Collection | undefined> {
         const uuid = `${Date.now()}`; // crypto.randomUUID();
         try {
-            await writeFile(`${STORAGE_URL}/${uuid}.json`, JSON.stringify(collection));
+            await writeFile(`${STORAGE_URL}/${uuid}.json`, JSON.stringify(collection.payload));
     
-            return { data: collection.data, id: uuid };
+            return { payload: collection.payload, id: uuid };
         } catch (error) {
             return undefined
         }
@@ -74,5 +74,4 @@ export class LocalCollectionRepository implements Collection.Repository {
             throw new NotFoundError()
         }
     }
-
 }

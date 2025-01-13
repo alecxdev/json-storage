@@ -17,7 +17,7 @@ router.get('/', fn(async (req, res) => {
     throw new ServerError();
   }
 
-  res.json({ data: collections });
+  return new SuccessResponse().send(res, collections);
 }));
 
 router.post('/', fn(async (req, res) => {
@@ -25,32 +25,30 @@ router.post('/', fn(async (req, res) => {
     throw new BadRequestError();
   }
 
-  let body;
+  let body: object;
   try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    body = typeof req.body === 'string' ? JSON.parse(req.body) : JSON.parse(JSON.stringify(req.body));
 
-    if (!Array.isArray(body) && !Object.keys(body).length) {
-      throw new BadRequestError();
-    }
-  } catch (err) {
-    throw err;
+    console.log(body, req.body);
+  } catch {
+    throw new BadRequestError();
   }
 
-  const id = await collectionRepo.create(body)
+  /*if (!Array.isArray(body) && !Object.keys(body).length) {
+    throw new BadRequestError('No empty object');
+  }*/
 
-  res.json(id);
+  const collection = await collectionRepo.create({ payload: body })
+
+  return new SuccessResponse().send(res, collection)
 }));
 
 router.delete('/:id', fn(async (req, res) => {
   const { id } = req.params;
 
-  try {
-    await collectionRepo.delete(id);
+  await collectionRepo.delete(id);
 
-    res.json({ success: true });
-  } catch (error) {
-    throw error;
-  }
+  return new SuccessResponse().send(res, undefined);
 }));
 
 router.put('/:id', fn(async (req, res) => {
@@ -60,13 +58,9 @@ router.put('/:id', fn(async (req, res) => {
     throw new Error();
   }
 
-  try {
-    const response = await collectionRepo.update({ ...body, id });
-    
-    res.json({ success: true, response });
-  } catch (error) {
-    throw error;
-  }
+  const collection = await collectionRepo.update({ ...body, id });
+  
+  return new SuccessResponse().send(res, collection);
 }));
 
 // router.use('/:id', (req, res, next) => {

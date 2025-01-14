@@ -45,7 +45,7 @@ export class LocalCollectionRepository implements Collection.Repository {
 
     async update(collection: Collection): Promise<Collection> {
         try {
-            await writeFile(`${STORAGE_URL}/${collection.id}.json`, JSON.stringify(collection));
+            await writeFile(`${STORAGE_URL}/${collection.id}.json`, JSON.stringify(collection.payload));
     
             return collection;
         } catch {

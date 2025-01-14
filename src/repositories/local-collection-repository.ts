@@ -21,28 +21,14 @@ export class LocalCollectionRepository implements Collection.Repository {
         }
     }
 
-    async getById(id: string, path?: string[]): Promise<Collection> {
+    async getById(id: string): Promise<Collection> {
         try {
             const content = await readFile(`${STORAGE_URL}/${id}.json`, { encoding: 'utf-8' });
             let payload: Collection['payload'] = JSON.parse(content);
     
-            if (!path?.length) {
-                return { id, payload };
-            }
-    
-            for (const property of path) {
-                if (payload && typeof payload === 'object' && property in payload) {
-                    payload = payload[property as keyof typeof payload];
-
-                    continue;
-                }
-
-                throw new BadRequestError()
-            }
-
             return { id, payload };
         } catch {
-            throw new ServerError();
+            throw new NotFoundError();
         }
     }
 

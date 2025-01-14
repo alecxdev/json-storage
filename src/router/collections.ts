@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { SuccessResponse } from '../core/response';
-import { BadRequestError, ServerError } from '../exceptions';
+import { BadRequestError, NotFoundError, ServerError } from '../exceptions';
 import { CollectionRequest } from '../types/app-request';
 import { Collection } from '../types/collection';
 import { LocalCollectionRepository } from '../repositories/local-collection-repository';
 import fn from '../utils/async-handler';
+import { convertPath, reduceObject } from '../utils/collection';
 
 const router = Router();
 
@@ -63,36 +64,18 @@ router.put('/:id', fn(async (req, res) => {
   return new SuccessResponse().send(res, collection);
 }));
 
-// router.use('/:id', (req, res, next) => {
-//   next();
-// });
-
-
-// type RequestWithId = Request<{ id: string }> & {
-//   id: string;
-//   content: any;
-// };
-
-router.use('/:id', fn(async (req, res, next) => {
+router.use('/:id', fn(async (expressReq, res, next) => {
+  const req = expressReq as CollectionRequest;
   const { id } = req.params;
-  const properties = req.path.split('/').filter((q) => q.length);
-
-  try {
-    let data: any = await collectionRepo.getById(id, properties);
-    const entries = [
-      ['id', id],
-      ['collection', data],
-      ['properties', properties]
-    ]  as const;
-
-    for (const [key, value] of entries) {
-      (req as unknown as CollectionRequest)[key] = value;
-    }
-
-    next();
-  } catch(e) {
-    throw new ServerError();
+  let collection = await collectionRepo.getById(id);
+  
+  if (!collection) {
+    throw new NotFoundError();
   }
+
+  req.collection = collection;
+
+  next();
 }));
 
 // router.get(/\/./g, (req: Request, res: Response) => {
@@ -103,10 +86,16 @@ router.use('/:id', fn(async (req, res, next) => {
 // });
 
 router.get('/:id*', (req: Request, res: Response) => {
-  // Your route handler logic here
-  const { collection }  = (req as unknown as CollectionRequest);
+  const { collection }  = req as CollectionRequest;
+  const [_, ...path] = convertPath(req.path)
 
-  return new SuccessResponse().send(res, collection);
+  try {
+    const reducedCollection = reduceObject(collection.payload, path)
+
+    return new SuccessResponse().send(res, reducedCollection);
+  } catch(e) {
+    throw new BadRequestError((e as Error).message);
+  }
 });
 
 export default router;

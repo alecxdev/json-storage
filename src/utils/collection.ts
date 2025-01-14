@@ -16,12 +16,12 @@ export const reduceObject = (object: unknown, properties: string[]) => {
   return data;
 }
 
-export const extendObject = <T>(object: T, addedObj: unknown, location: string[]): T => {
+export const extendObject =(object: unknown, addedObj: unknown, location: string[]): unknown => {
   const clone = structuredClone(object);
   let data: unknown = clone;
 
   if (!location.length) {
-    throw new Error('Property location cannot be empty.');
+    return addedObj;
   }
 
   const lastKey = location.pop()!;

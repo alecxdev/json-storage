@@ -5,7 +5,7 @@ import { CollectionRequest } from '../types/app-request';
 import { Collection } from '../types/collection';
 import { LocalCollectionRepository } from '../repositories/local-collection-repository';
 import fn from '../utils/async-handler';
-import { convertPath, reduceObject } from '../utils/collection';
+import { convertPath, extendObject, reduceObject } from '../utils/collection';
 
 const router = Router();
 
@@ -27,13 +27,12 @@ router.post('/', fn(async (req, res) => {
   }
 
   let body: object;
-  try {
-    body = typeof req.body === 'string' ? JSON.parse(req.body) : JSON.parse(JSON.stringify(req.body));
 
-    console.log(body, req.body);
-  } catch {
-    throw new BadRequestError();
+  if (typeof req.body !== 'object') {
+    throw new BadRequestError('JSON must be an object');
   }
+
+  body = req.body
 
   /*if (!Array.isArray(body) && !Object.keys(body).length) {
     throw new BadRequestError('No empty object');
@@ -78,16 +77,9 @@ router.use('/:id', fn(async (expressReq, res, next) => {
   next();
 }));
 
-// router.get(/\/./g, (req: Request, res: Response) => {
-//   console.log(req.path);
-//   (req as unknown as CollectionRequest).coll
-
-//   res.json(['regex']);
-// });
-
 router.get('/:id*', (req: Request, res: Response) => {
   const { collection }  = req as CollectionRequest;
-  const [_, ...path] = convertPath(req.path)
+  const [_id, ...path] = convertPath(req.path);
 
   try {
     const reducedCollection = reduceObject(collection.payload, path)
@@ -97,5 +89,26 @@ router.get('/:id*', (req: Request, res: Response) => {
     throw new BadRequestError((e as Error).message);
   }
 });
+
+router.post('/:id*', fn(async (req: Request, res: Response) => {
+  const { collection: collection_ }  = req as CollectionRequest;
+  const [_id, ...path] = convertPath(req.path)
+
+  try {
+
+    const payload = extendObject(collection_.payload, req.body, path);
+    const collection = await collectionRepo.update({ id: collection_.id, payload });
+
+    if (!collection) {
+      throw new Error('Couldn\'t add to the object');
+    }
+
+    const reducedCollection = reduceObject(collection.payload, path)
+
+    return new SuccessResponse().send(res, reducedCollection);
+  } catch(e) {
+    throw new BadRequestError((e as Error).message);
+  }
+}));
 
 export default router;

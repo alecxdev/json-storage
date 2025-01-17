@@ -28,9 +28,9 @@ router.post('/', fn(async (req, res) => {
 
   let body: object;
 
-  if (typeof req.body !== 'object') {
-    throw new BadRequestError('JSON must be an object');
-  }
+  // if (typeof req.body !== 'object') {
+  //   throw new BadRequestError('JSON must be an object');
+  // }
 
   body = req.body
 
@@ -39,6 +39,10 @@ router.post('/', fn(async (req, res) => {
   }*/
 
   const collection = await collectionRepo.create({ payload: body })
+
+  if (!collection) {
+    throw new ServerError();
+  }
 
   return new SuccessResponse().send(res, collection)
 }));
@@ -54,11 +58,15 @@ router.delete('/:id', fn(async (req, res) => {
 router.put('/:id', fn(async (req, res) => {
   const { params: { id }, body } = req;
 
-  if (typeof body !== 'object') {
-    throw new Error();
-  }
+  // if (typeof body !== 'object') {
+  //   throw new Error();
+  // }
 
-  const collection = await collectionRepo.update({ ...body, id });
+  const collection = await collectionRepo.update({ id, payload: body });
+
+  if (!collection) {
+    throw new ServerError();
+  }
   
   return new SuccessResponse().send(res, collection);
 }));
@@ -109,6 +117,44 @@ router.post('/:id*', fn(async (req: Request, res: Response) => {
   } catch(e) {
     throw new BadRequestError((e as Error).message);
   }
+}));
+
+router.delete('/:id*', fn(async (req, res) => {
+  const { collection: collection_ }  = req as CollectionRequest;
+  const [_id, ...path] = convertPath(req.path);
+
+  if (!path.length) {
+    // remove from database
+    await collectionRepo.delete(_id);
+
+    return new SuccessResponse().send(res, undefined);
+  }
+
+  const lastKey = path.pop()!;
+  const obj = reduceObject(collection_.payload, path);
+
+  if (!obj || typeof obj !== 'object' || !(lastKey in obj)) {
+    throw new BadRequestError(`Error accessing ${lastKey} key`);
+  }
+
+  if (Array.isArray(obj)) {
+    if (Number.isNaN(Number(lastKey))) {
+      throw new BadRequestError('Key is not an index');
+    }
+
+    obj.splice((Number(lastKey)), 1);
+  } else {
+    delete obj[lastKey as keyof typeof obj];
+  }
+
+  const collection = await collectionRepo.update(collection_);
+
+  if (!collection) {
+    throw new ServerError();
+  }
+
+  return new SuccessResponse().send(res, undefined);
+  // return new SuccessResponse().send(res, collection.payload);
 }));
 
 export default router;
